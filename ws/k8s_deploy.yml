@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: gtfs-rt-viewer-ws
+  labels:
+    app: gtfs-rt-viewer-ws
+spec:
+  selector:
+    app: gtfs-rt-viewer-ws
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gtfs-rt-viewer-ws
+  labels:
+    app: gtfs-rt-viewer-ws
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gtfs-rt-viewer-ws
+  template:
+    metadata:
+      labels:
+        app: gtfs-rt-viewer-ws
+    spec:
+      containers:
+      - name: gtfs-rt-viewer-ws
+        image: docker-registry.canaltp.fr/prhod/gtfs-rt-viewer-ws
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000

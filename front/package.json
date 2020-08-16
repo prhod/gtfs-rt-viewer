@@ -8,8 +8,11 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "aws-sdk": "^2.733.0",
     "core-js": "^3.6.5",
+    "minio": "^7.0.16",
     "vue": "^2.6.11",
+    "vue-json-viewer": "^2.2.14",
     "vuetify": "^2.3.8"
   },
   "devDependencies": {
