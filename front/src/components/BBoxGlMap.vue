@@ -1,7 +1,4 @@
 <template>
-  <v-dialog v-model="active" persistent max-width="800px">
-    <v-card>
-      <v-card-title class="headline grey lighten-2" primary-title>BBox edition</v-card-title>
       <div style="min-heigth:500px,  width:500px">
         <MglMap
           :accessToken="MapBoxToken"
@@ -11,28 +8,25 @@
           @moveend="onMapChange"
         />
       </div>
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn color="primary" @click="onBboxCancel">Cancel</v-btn>
-        <v-btn color="primary" @click="onBboxSave">Save</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
 </template>
 
 <script>
 import { MglMap } from "vue-mapbox";
+import { mapState } from "vuex";
+
 
 export default {
   components: {
     MglMap
   },
-  props: ["active", "bbox"],
+  props: ["bbox"],
   data() {
     return {
-      l_bbox: false,
-      MapGlStyle: "mapbox://styles/mapbox/streets-v11"
+      l_bbox: false
     };
+  },
+  computed: {
+    ...mapState(["MapBoxToken", "MapGlStyle"])
   },
   methods: {
     onMapChange() {
@@ -43,13 +37,7 @@ export default {
       this.refreshMap();
       this.l_bbox = this.map.getBounds();
     },
-    onBboxSave: function() {
-      this.$emit("update", this.l_bbox.toArray());
-    },
-    onBboxCancel: function() {
-      this.$emit("close");
-    },
-    refreshMap: function(){
+   refreshMap: function(){
       if (this.bbox &&this.map) {
         var sourceObject = this.map.getSource('bbox');
         var data = {
