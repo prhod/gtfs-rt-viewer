@@ -17,7 +17,6 @@
 </template>
 
 <script>
-var Minio = require("minio");
 import JsonViewer from 'vue-json-viewer'
 
 export default {
@@ -31,39 +30,12 @@ export default {
   methods: {
     doUpdate() {
       this.trip = "updated";
-      var minioClient = new Minio.Client({
-        endPoint: "minio-poc-carto.rhod.ovh",
-        port: 81,
-        useSSL: false,
-        accessKey: "minioaccess",
-        secretKey: "miniosecret"
-      });
-      minioClient.listBuckets(function(err, buckets) {
-        if (err) return console.log(err);
-        console.log("buckets :", buckets);
-      });
-      var size = 0;
-      var content = "";
-      var vue_context = this;
-      minioClient.getObject("sherbrookedata", "gtfsrt/20200815-161502_vehiclePositions.json", function(err, dataStream) {
-        if (err) {
-          return console.log(err);
-        }
-        dataStream.on("data", function(chunk) {
-          size += chunk.length;
-          content += chunk.toString('ascii');
-        });
-        dataStream.on("end", function() {
-          vue_context.jsonData = JSON.parse(content);
-          console.log(this.jsonData);
-          vue_context.trip = "updated avec le JSON";
-         console.log("End. Total size = " + size);
-        });
-        dataStream.on("error", function(err) {
-          console.log(err);
-        });
-      });
-    }
+      let url = "http://minio-poc-carto.rhod.ovh:81/buckets/sherbrookedata/gtfsrt/20200814/20200814-000004_tripUpdates.pb?format=json";
+      let vue = this;
+      fetch(url, {method: "GET"})
+        .then(response => response.json())
+        .then(response => vue.jsonData = response);
+   }
   }
 };
 </script>
