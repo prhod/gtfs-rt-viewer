@@ -1,96 +1,71 @@
 <template>
-      <div style="min-heigth:500px,  width:500px">
-        <MglMap
-          :accessToken="MapBoxToken"
-          :mapStyle="MapGlStyle"
-          class="map"
-          @load="onMapLoaded"
-          @moveend="onMapChange"
-        />
-      </div>
+  <div style="height:100%; width:100%; min-height: 800px">
+    <MglMap
+      :access-token="MapBoxToken"
+      :map-style="MapGlStyle"
+      @load="onMapLoaded"
+      @moveend="onMapChange"
+    >
+      <MglNavigationControl position="top-right" />
+      <MglMarker
+        v-for="item in gtfsrt_VP.entity"
+        :key="item.id"
+        :coordinates="[item.vehicle.position.longitude, item.vehicle.position.latitude]"
+        color="blue"
+      />
+    </MglMap>
+  </div>
 </template>
 
 <script>
-import { MglMap } from "vue-mapbox";
-import { mapState } from "vuex";
+    import { MglMap, MglNavigationControl, MglMarker } from "vue-mapbox";
+    import Mapbox from "mapbox-gl";
+    import { mapState } from "vuex";
 
-
-export default {
-  components: {
-    MglMap
-  },
-  props: ["bbox"],
-  data() {
-    return {
-      l_bbox: false
-    };
-  },
-  computed: {
-    ...mapState(["MapBoxToken", "MapGlStyle"])
-  },
-  methods: {
-    onMapChange() {
-      this.l_bbox = this.map.getBounds();
-    },
-    onMapLoaded(event) {
-      this.map = event.map;
-      this.refreshMap();
-      this.l_bbox = this.map.getBounds();
-    },
-   refreshMap: function(){
-      if (this.bbox &&this.map) {
-        var sourceObject = this.map.getSource('bbox');
-        var data = {
-              type: "Feature",
-              geometry: {
-                type: "Polygon",
-                coordinates: [[
-                  [this.bbox[0][0], this.bbox[0][1]],
-                  [this.bbox[1][0], this.bbox[0][1]],
-                  [this.bbox[1][0], this.bbox[1][1]],
-                  [this.bbox[0][0], this.bbox[1][1]],
-                  [this.bbox[0][0], this.bbox[0][1]]
-                ]]
-              }
-            };
-        if (!sourceObject) {
-          let source = {
-            type: "geojson",
-            data: data
-          };
-          this.map.addSource("bbox", source);
-          this.map.addLayer({
-            id: "bbox",
-            type: "fill",
-            source: "bbox",
-            layout: {},
-            paint: {
-              "fill-color": "#088",
-              "fill-opacity": 0.8
+    export default {
+        components: {
+            MglMap,
+            MglNavigationControl,
+            MglMarker
+        },
+        data: () => ({
+            bounds : false,
+        }),
+        computed: {
+            ...mapState(["MapBoxToken", "MapGlStyle", "gtfsrt_VP"])
+        },
+        watch: {
+            bbox: function() {
+                this.refreshMap();
+            },
+            gtfsrt_VP: function() {
+                var coordinates = this.gtfsrt_VP.entity.map(e => [e.vehicle.position.longitude, e.vehicle.position.latitude]);
+                var bounds = coordinates.reduce(function(bounds, coord) {
+                    return bounds.extend(coord);
+                }, new Mapbox.LngLatBounds(coordinates[0], coordinates[0]));
+                this.bounds = bounds;
+                this.map.fitBounds(bounds, {padding: 20});
             }
-          });
-        } else {
-          sourceObject.setData(data);
+        },
+        created() {
+            this.map = null;
+        },
+        methods: {
+            onMapChange() {
+            },
+            onMapLoaded(event) {
+                this.map = event.map;
+                this.refreshMap();
+            },
+            refreshMap: function() {
+            }
         }
-        this.map.fitBounds(this.bbox);
-      }      
-    }
-  },
-  created() {
-    this.map = null;
-  },
-  watch: {
-    bbox: function() {
-      this.refreshMap();
-    }
-  }
-};
+    };
 </script>
 
 <style lang="scss" scoped>
 .map {
-  width: 100%;
-  height: 100%;
-  min-height: 300px;
+  width: 500px;
+  height: 500px;
 }
 </style>
