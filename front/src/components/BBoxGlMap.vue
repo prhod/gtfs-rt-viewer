@@ -22,6 +22,47 @@
     import Mapbox from "mapbox-gl";
     import { mapState } from "vuex";
 
+    const ctrlPoint = new MapboxGLButtonControl({
+        className: "mapbox-gl-draw_point",
+        title: "Draw Point",
+        eventHandler: one
+    });
+    class MapboxGLButtonControl {
+        constructor({
+            className = "",
+            title = "",
+            eventHandler = evtHndlr
+        }) {
+            this._className = className;
+            this._title = title;
+            this._eventHandler = eventHandler;
+        }
+
+        onAdd() {
+            this._btn = document.createElement("button");
+            this._btn.className = "mapboxgl-ctrl-icon" + " " + this._className;
+            this._btn.type = "button";
+            this._btn.title = this._title;
+            this._btn.onclick = this._eventHandler;
+
+            this._container = document.createElement("div");
+            this._container.className = "mapboxgl-ctrl-group mapboxgl-ctrl";
+            this._container.appendChild(this._btn);
+
+            return this._container;
+        }
+
+        onRemove() {
+            this._container.parentNode.removeChild(this._container);
+            this._map = undefined;
+        }
+    }
+
+function one(event) {
+  alert("Event handler when clicking on \r\n" + event.target.className);
+  console.log("event number 1", event);
+}
+
     export default {
         components: {
             MglMap,
@@ -55,6 +96,7 @@
             },
             onMapLoaded(event) {
                 this.map = event.map;
+                this.map.addControl(ctrlPoint, "bottom-left");
                 this.refreshMap();
             },
             refreshMap: function() {
