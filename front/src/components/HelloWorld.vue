@@ -58,13 +58,12 @@
 
 <script>
     import JsonViewer from 'vue-json-viewer'
-    import BBoxGlMap from "@/components/BBoxGlMap.vue"
-    import { mapState, mapActions } from "vuex";
-
+    import BBoxGlMap from '@/components/BBoxGlMap.vue'
+    import { mapState, mapActions } from 'vuex'
 
     export default {
-        name: "HelloWorld",
-        components: {JsonViewer, BBoxGlMap},
+        name: 'HelloWorld',
+        components: { JsonViewer, BBoxGlMap },
 
         data: () => ({
             tab: false,
@@ -72,31 +71,20 @@
             date: new Date().toISOString().substr(0, 10)
         }),
         computed: {
-            ...mapState(["buckets", "currentBucket", "gtfsrt_dates", "gtfsrt_times", "gtfsrt_TU", "gtfsrt_VP"])
+            ...mapState(['buckets', 'currentBucket', 'gtfsrt_dates', 'gtfsrt_times', 'gtfsrt_TU', 'gtfsrt_VP'])
         },
-        created() {
-            this.getBuckets();
+        created () {
+            this.getBuckets()
         },
         methods: {
-            ...mapActions(["getBuckets", "getGtfsRTDates", "setCurrentBucket", "setCurrentDate", "setCurrentFile"]),
-            doUpdate() {
-                let url = "http://minio-poc-carto.rhod.ovh:81/buckets/sherbrookedata/gtfsrt/20200814/20200814-000004_tripUpdates.pb?format=json";
-                let vue = this;
-                fetch(url, {method: "GET"})
-                    .then(response => response.json())
-                    .then(response => vue.jsonData = response);
-            },
-            allowedDates: function(val) {
-                console.log(val);
-                return true;
-            },
-            bucketChange: function(val) {
+            ...mapActions(['getBuckets', 'getGtfsRTDates', 'setCurrentBucket', 'setCurrentDate', 'setCurrentFile']),
+            bucketChange: function (val) {
                 this.setCurrentBucket(val)
             },
-            dateChange: function(val) {
+            dateChange: function (val) {
                 this.setCurrentDate(val)
             },
-            instantChange: function(val){
+            instantChange: function (val) {
                 this.setCurrentFile(val)
             }
         }
