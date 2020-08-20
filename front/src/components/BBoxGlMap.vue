@@ -8,9 +8,9 @@
     >
       <MglNavigationControl position="top-right" />
       <MglMarker
-        v-for="item in gtfsrt_VP.entity"
+        v-for="item in markers"
         :key="item.id"
-        :coordinates="[item.vehicle.position.longitude, item.vehicle.position.latitude]"
+        :coordinates="item.coord"
         color="blue"
       />
     </MglMap>
@@ -21,7 +21,6 @@
     import { MglMap, MglNavigationControl, MglMarker } from "vue-mapbox"
     import Mapbox from "mapbox-gl"
     import { mapState } from "vuex"
-    // import MapCenterBtn from '@/components/MapCenterBtn.vue'
     import MapboxGLButtonControl from "@/plugins/mapbtn"
 
     export default {
@@ -32,13 +31,22 @@
         },
         data: () => ({
             bounds : false,
+            markers: []
         }),
         computed: {
             ...mapState(["MapBoxToken", "MapGlStyle", "gtfsrt_VP"])
         },
         watch: {
-            bbox: function() {
-                this.refreshMap();
+            gtfsrt_VP: function() {
+                this.markers = [];
+                let i = 0;
+                this.markers = this.gtfsrt_VP.entity.map(function(e) {
+                    i += 1;
+                    return {
+                        'id': i,
+                        'coord': [e.vehicle.position.longitude, e.vehicle.position.latitude]
+                    };
+                });
             }
         },
         created() {

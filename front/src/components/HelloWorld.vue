@@ -17,16 +17,24 @@
         <v-select
           :items="gtfsrt_times"
           label="Instants"
+          v-model="selectedTime"
           outlined
-          @change="instantChange"
         />
+        <v-row>
+          <v-col>
+            <v-btn style="width: 100%;" @click="goToPrevFile">Previous</v-btn>
+          </v-col>
+           <v-col>
+            <v-btn style="width: 100%;" @click="goToNextFile">Next</v-btn>
+          </v-col>
+        </v-row>
       </v-col>
       <v-col :cols="7">
         <BBoxGlMap />
       </v-col>
       <v-col :cols="3">
         <v-tabs
-          v-model="tabs"
+          v-model="tab"
         >
           <v-tab key="TU">
             TripUpdates
@@ -68,10 +76,18 @@
         data: () => ({
             tab: false,
             jsonData: {},
+            selectedTime: "",
             date: new Date().toISOString().substr(0, 10)
         }),
         computed: {
-            ...mapState(['buckets', 'currentBucket', 'gtfsrt_dates', 'gtfsrt_times', 'gtfsrt_TU', 'gtfsrt_VP'])
+            ...mapState(['buckets', 'currentBucket', 'currentTime', 'gtfsrt_dates', 'gtfsrt_times', 'gtfsrt_TU', 'gtfsrt_VP'])
+        },
+        watch: {
+            selectedTime: function(val) {
+                if (val != "") {
+                    this.setCurrentFile(val);
+                }
+            }
         },
         created () {
             this.getBuckets()
@@ -84,8 +100,17 @@
             dateChange: function (val) {
                 this.setCurrentDate(val)
             },
-            instantChange: function (val) {
-                this.setCurrentFile(val)
+            goToPrevFile: function() {
+                let idx = this.gtfsrt_times.indexOf(this.currentTime);
+                if (idx > 0) {
+                    this.selectedTime = this.gtfsrt_times[idx-1];
+                }
+            },
+            goToNextFile: function() {
+                let idx = this.gtfsrt_times.indexOf(this.currentTime);
+                if (idx < this.gtfsrt_times.length) {
+                    this.selectedTime = this.gtfsrt_times[idx+1];
+                }
             }
         }
     };
