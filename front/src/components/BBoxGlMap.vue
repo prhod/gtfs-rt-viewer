@@ -13,12 +13,18 @@
         :coordinates="item.coord"
         color="blue"
       />
+      <MglGeojsonLayer
+        sourceId="movementSource"
+        :source="movementSource"
+        layerId="movementLay"
+        :layer="movementLayer"
+      />
     </MglMap>
   </div>
 </template>
 
 <script>
-    import { MglMap, MglNavigationControl, MglMarker } from "vue-mapbox"
+    import { MglMap, MglNavigationControl, MglMarker, MglGeojsonLayer } from "vue-mapbox"
     import Mapbox from "mapbox-gl"
     import { mapState } from "vuex"
     import MapboxGLButtonControl from "@/plugins/mapbtn"
@@ -27,26 +33,76 @@
         components: {
             MglMap,
             MglNavigationControl,
-            MglMarker
+            MglMarker,
+            MglGeojsonLayer
         },
         data: () => ({
             bounds : false,
-            markers: []
+            markers: [],
+            movementSource: {
+                "type": 'geojson',
+                "data": {
+                    "type": "FeatureCollection",
+                 "features": [{
+                    "type": "Feature",
+                    "properties": {},
+                    "geometry": {
+                        "type": "LineString",
+                        "coordinates": [
+                        ]
+                    }
+                }]
+                }
+           },
+           movementLayer: {
+                id: "movementLay",
+                type: "line",
+                'layout': {
+                    'line-join': 'round',
+                    'line-cap': 'round'
+                },
+                'paint': {
+                    'line-color': '#888',
+                    'line-width': 8
+                }
+            }
         }),
         computed: {
-            ...mapState(["MapBoxToken", "MapGlStyle", "gtfsrt_VP"])
+            ...mapState(["MapBoxToken", "MapGlStyle", "gtfsrt_VP", "movements"])
         },
         watch: {
             gtfsrt_VP: function() {
                 this.markers = [];
-                let i = 0;
-                this.markers = this.gtfsrt_VP.entity.map(function(e) {
-                    i += 1;
-                    return {
-                        'id': i,
-                        'coord': [e.vehicle.position.longitude, e.vehicle.position.latitude]
+                if (this.gtfsrt_VP.entity) {
+                    let i = 0;
+                    this.markers = this.gtfsrt_VP.entity.map(function(e) {
+                        i += 1;
+                        return {
+                            'id': i,
+                            'coord': [e.vehicle.position.longitude, e.vehicle.position.latitude]
+                        };
+                    });
+                }
+            },
+            movements: function() {
+              let newgeo = {
+                    "type": "FeatureCollection",
+                    "features": []
+                };
+                for (let i in this.movements) {
+                    let mov = this.movements[i];
+                    let newFeature = {
+                        "type": "Feature",
+                        "properties": {},
+                        "geometry": {
+                            "type": "LineString",
+                            "coordinates": mov
+                        }
                     };
-                });
+                    newgeo.features.push(newFeature);
+                }
+                this.map.getSource('movementSource').setData(newgeo);
+                this.map.triggerRepaint(); 
             }
         },
         created() {
@@ -73,6 +129,8 @@
                     eventHandler: this.fitToMarkers
                 });
                 this.map.addControl(ctrlPoint, "top-right");
+                this.map.setCenter([-71.94694519042969, 45.481388092041016]);
+                this.map.setZoom(11);
                 this.refreshMap();
             },
             refreshMap: function() {

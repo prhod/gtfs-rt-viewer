@@ -15,7 +15,9 @@ export default new Vuex.Store({
     gtfsrt_dates: [],
     gtfsrt_times: [],
     gtfsrt_TU : "",
-    gtfsrt_VP : ""
+    gtfsrt_VP : "",
+    previous_gtfsrt_VP : "",
+    movements: []
   },
   mutations: {
     setCurrentBucket(state, val) {
@@ -74,9 +76,9 @@ export default new Vuex.Store({
          })
       }
     },
-    getSelectedGtfsRT({ state }) {
+    getSelectedGtfsRT({ state, dispatch }) {
       state.gtfsrt_TU = "";
-      state.gtfsrt_VL = "";
+      state.gtfsrt_VP = "";
       if (state.currentBucket && state.currentDate) {
         fetch(state.Minio + `buckets/${state.currentBucket}/gtfsrt/${state.currentDate}/${state.currentDate}-${state.currentTime}_vehiclePositions.pb?format=json`)
           .then(response => response.json())
@@ -88,7 +90,36 @@ export default new Vuex.Store({
           .then(response => {
             state.gtfsrt_TU = response;
         });
+        dispatch('getPreviousGtfsRT');
       }
-   }
+    },
+    getPreviousGtfsRT({ state, dispatch }) {
+      state.previous_gtfsrt_VP = "";
+      let idx = state.gtfsrt_times.indexOf(state.currentTime);
+      idx -= 1;
+      if (idx >= 0) {
+        let previousTime = state.gtfsrt_times[idx];
+        fetch(state.Minio + `buckets/${state.currentBucket}/gtfsrt/${state.currentDate}/${state.currentDate}-${previousTime}_vehiclePositions.pb?format=json`)
+          .then(response => response.json())
+          .then(response => {
+            state.previous_gtfsrt_VP = response;
+            dispatch('computeMovements');
+        });
+      }
+    },
+    computeMovements({ state }) {
+      let mooves = [];
+      for (let i in state.gtfsrt_VP.entity) {
+        let e = state.gtfsrt_VP.entity[i];
+        let prevEntity = state.previous_gtfsrt_VP.entity.find(obj => obj.id == e.id && obj.vehicle.trip.trip_id == e.vehicle.trip.trip_id);
+        if (prevEntity) {
+          mooves.push([
+            [prevEntity.vehicle.position.longitude, prevEntity.vehicle.position.latitude],
+            [e.vehicle.position.longitude, e.vehicle.position.latitude]
+          ]);
+        }
+      }
+      state.movements = mooves;
+    }
   }
 })
