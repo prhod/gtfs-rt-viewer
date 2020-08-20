@@ -70,7 +70,7 @@
     import { mapState, mapActions } from 'vuex'
 
     export default {
-        name: 'HelloWorld',
+        name: 'Home',
         components: { JsonViewer, BBoxGlMap },
 
         data: () => ({
